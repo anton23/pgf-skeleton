@@ -1,0 +1,13 @@
+\begin{tikzpicture}
+\begin{axis}[
+    title = {This is not Figure \ref{fig:plot1}, but Figure \ref{fig:plot2}},
+    xlabel = $x$,
+    ylabel = $y$
+]
+
+\addplot[mark=none, smooth, domain = -2:2] {x^3};
+\addlegendentry{$y=x^2$, Eq. (\ref{eq:y}), also in \cite{doc}};
+
+\end{axis}
+\end{tikzpicture}
+  

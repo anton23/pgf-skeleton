@@ -1,0 +1,122 @@
+\documentclass{article}
+
+\usepackage{graphicx}  
+\usepackage{ifthen}
+\usepackage{url}
+
+% run pdflatex ``\def\pgf{}\input{report.tex}'' 
+% to run pgf commands
+\ifthenelse{\not\isundefined{\pgf}}{\usepackage{preamble-tikz}}{}
+
+% the default directory with generated figures is 'generated/'
+\ifthenelse{\isundefined{\generated}}{\def\generated{generated}}{}
+
+\makeatletter
+\ifthenelse{\not\isundefined{\pgf}}{%
+   \newcommand{\inputTikZ}[1]{%
+    \beginpgfgraphicnamed{\generated/#1-external}%
+    \input{#1.tex}%
+    \endpgfgraphicnamed%
+    }    
+}{%
+  \newcommand{\inputTikZ}[1]{%
+    \includegraphics{\generated/#1-external.pdf}%
+  }  
+}
+\makeatother
+
+\begin{document}
+\title{Minimum working example of my PGF externalisation setup}
+\author{Anton Stefanek}
+\maketitle
+\section{Introduction}
+This is a \LaTeX document and Makefile skeleton using externalisation features of \emph{PGF}
+\TeX package\footnote{http://sourceforge.net/projects/pgf/} in a slightly non-standard
+way. PGF provides various externalisation features that have become increasingly
+sophisticated and elegant over the last few years. This skeleton uses them to
+allow
+\begin{itemize}
+    \item Both authors with and without working PGF installation (and
+further packages such as \emph{TikZ} and \emph{pgfplots}) to
+collaborate on the document. This results in a straightforward export of the document and all generated figure
+files that can be used as a submission to journals/conferences (which often
+don't allow use of advanced packages such as TikZ and pgfplots).
+    \item The use of some \emph{beamer} overlay features in presentations. This
+        makes a huge difference in compilation times because each overlay
+        requires the whole figure to be typeset again (something that can take
+        very long for example when large datasets are included with pgfplots).
+\end{itemize}
+
+\section{How it works}
+
+The figures to be externalised are defined in individual files included via the command
+\texttt{\\includeTikZ}. This command works in two different ways, based on the option
+\texttt{\\pgf}. If defined, the command uses PGF externalisation features
+(i.e.\ the \texttt{\\beginpgfgraphicnamed} and related commands) and creates \texttt{-external.pdf} files for
+each figure (when ran with the correct \texttt{--jobname} flag). Otherwise, the command just includes the generated pdf files.
+
+The figure pdf files (together with additional pdflatex auxiliary files) are
+generated in a separate directory structure (\texttt{.generated/} by default).
+When collaborating with an author who doesn't have a working version of PGF,
+this directory can be included in version control. Similarly, when submitting to
+a journal which does not support some of the drawing packages, it is sufficient
+to include the \texttt{generated} directory and omit any of the figure sources
+and e.g.\ pgfplots data.
+
+\section{Makefile}
+
+The Makefile watches the figure sources, defined as all the \texttt{.tex} files
+in a given list of directories. If a figure changes, pdflatex is ran with the
+\texttt{\\pgf} option and an appropriate \texttt{--jobname} flag. 
+
+During the first build, all the external figure pdf files have to be created. In order
+to produce each figure pdf file, the whole document has to be built.
+Because there are initially no figure files, each of these builds will require
+pdflatex to fully draw all the figures that have not been externalised so far.
+To avoid this, the Makefile provides the \texttt{make figures} command. This
+will initially replace all figures with an empty image and then generates the
+figure pdf files one by one.
+
+\section{Examples}
+\begin{figure}[hbt]
+\centering
+\inputTikZ{figures/plot1}
+\caption{Sample plot. Source can be found in \texttt{figures/plot1.tex}.}
+\label{fig:plot1}
+\end{figure}
+An equation (referenced from an externalised figure):
+\begin{equation}
+    y = x^3
+    \label{eq:y} 
+\end{equation}
+
+\begin{figure}[hbt]
+\centering
+\inputTikZ{figures/plot2}
+\caption{Sample plot, references and citations inside figures work. These might
+not get picked up correctly during the first build after the figure is included.
+The \texttt{make figure} and \texttt{make figures} commands do this correctly
+(and the makefile can be modified to run an additional dummy build before each
+figure is externalised). Source in \texttt{figures/plot2.tex}.}
+\label{fig:plot2}
+\end{figure}
+
+\clearpage
+\section{Known issues}
+
+\begin{itemize}    
+    \item Each \texttt{.tex} file in \texttt{figures/} has to have a
+        corresponding \texttt{inputTikZ} command in the document.
+        \texttt{pdflatex} fails if it tries to externalise a figure
+        (picked up from a filename in \texttt{figures/}) when there is no
+        corresponding \texttt{inputTikZ} command in the document. In case a
+        figure is no longer needed, its \texttt{.tex} file has to be moved from
+        \texttt{figures/}.
+    \item PGF/TikZ overlays 
+\end{itemize}
+
+\begin{thebibliography}{9}
+    \bibitem{doc}
+    Author, \emph{A document}, Publisher.
+\end{thebibliography}
+\end{document}
