@@ -1,0 +1,94 @@
+\documentclass{beamer}
+
+\setjobnamebeamerversion{presentation}
+
+
+\usecolortheme{dove}
+\usepackage{graphicx}
+\usepackage{pgffor}
+
+\usepackage{ifthen}
+
+% run pdflatex ``\def\pgf{}\input{report.tex}'' 
+% to run pgf commands
+\ifthenelse{\not\isundefined{\pgf}}{\usepackage{preamble-tikz}}{}
+
+% the default directory with generated figures is 'generated/'
+\ifthenelse{\isundefined{\generated}}{\def\generated{generated}}{}
+
+\makeatletter
+\ifthenelse{\not\isundefined{\pgf}}{%
+   \newcommand{\inputTikZ}[1]{%
+    \beginpgfgraphicnamed{\generated/#1-external}%
+    \input{#1.tex}%
+    \endpgfgraphicnamed%
+    }    
+}{%
+  \newcommand{\inputTikZ}[1]{%
+    \includegraphics{\generated/#1-external.pdf}%
+  }  
+}
+\makeatother
+
+
+
+\makeatletter
+\ifthenelse{\not\isundefined{\pgf}}{%
+   \newcommand{\inputTikZOnlys}[3]{%
+   \foreach \n in {#2,...,#3}{%
+       \only<\n|handout:0>{%
+        \beginpgfgraphicnamed{\generated/#1-external}%
+            \input{#1.tex}%
+        \endpgfgraphicnamed%
+       }
+    }%
+  } %
+}{%
+  \newcommand{\inputTikZOnlys}[3]{%
+   \foreach[count=\page] \n in {#2,...,#3}{%
+        \only<\n|handout:0>{\includegraphics[page=\page]{\generated/#1-external.pdf}}%
+    }%
+  }  
+}
+\makeatother
+
+
+\setbeamercovered{invisible}
+
+
+\title{Example of PGF externalisation in a Beamer presentation}
+\subtitle{ASMTA 2012}
+
+\author{Anton Stefanek}
+
+\date{\today}
+
+\beamertemplatenavigationsymbolsempty
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Static externalised figure}
+Figures not containing Beamer overlays can be included in the same way as in the
+\texttt{document.tex} example.
+\begin{center}
+\inputTikZ{figures/plot1}
+\end{center}
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Example with overlays}
+The command \texttt{\\inputTikZOnlys\{figure\}\{start-slide\}\{end-slide\}} uses
+PGF externalisation to produce a pdf document with multiple pages and then
+includes each of the pages as an overlay:
+\centering
+\begin{center}
+\inputTikZOnlys{figures/plot2}{2}{5}
+\end{center}
+\end{frame}
+
+\end{document}
