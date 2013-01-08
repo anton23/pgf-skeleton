@@ -33,7 +33,7 @@ createDummies: dummy.pdf $(figureTeXFiles:%.tex=%-dummy)
 	pdflatex $(NONPGFSETUP);
 
 dummy.pdf:
-	pdflatex --jobname=dummy "\documentclass{article}\usepackage{pgffor}\begin{document}\foreach \p in {0,..,$(MAXPAGES)}{dummy\newpage}\end{document}"
+	pdflatex --jobname=dummy "\documentclass{article}\usepackage{pgffor}\begin{document}\foreach\n in {0,...,$(MAXPAGES)}{dummy\newpage}\end{document}"
 	rm dummy.log dummy.aux
 
 %-dummy: %.tex
